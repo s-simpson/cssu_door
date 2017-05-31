@@ -77,18 +77,10 @@ class Door(object):
     def get_state(self):
         if gpio.input(self.state_pin) == self.state_pin_closed_value:
             return 'closed'
-        elif self.last_action == 'open':
-            if time.time() - self.last_action_time >= self.time_to_open:
-                return 'open'
-            else:
-                return 'opening'
-        elif self.last_action ==  'close':
-            if time.time() - self.last_action_time >= self.time_to_close:
-                return 'open' # This state indicates a problem
-            else:
-                return 'closing'
-        else:
+        if gpio.input(self.state_pin) != self.state_pin_closed_value:
             return 'open'
+        
+
 
     def toggle_relay(self):
         state = self.get_state()

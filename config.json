@@ -1,22 +1,22 @@
 {
 "config":
 {
-	"use_auth":true,
+	"use_auth":false,
 	"use_alerts":true,
 	"use_openhab":false
 },
 "alerts":
 {
-	"time_to_wait" : 1,
+	"time_to_wait" : 0,
 	"alert_type" : null,
         "smtp":
 		{
-		"smtphost" : "<SMTP HOST>",
+		"smtphost" : "smtp.gmail.com",
 		"smtpport" : 587,
 		"smtp_tls" : "True",
-		"username" : "<USERNAME EMAIL ADDRESS>",
-		"password" : "<PASSWORD>",
-		"to_email" : "4163994913@pcs.rogers.com"
+		"username" : "youraccount@gmail.com",
+		"password" : "yourpassword",
+		"to_email" : "5551234567@txt.att.net"
 		},
 	"pushbullet":
 		{
@@ -47,8 +47,8 @@
 			"relay_pin" : 24,
 			"state_pin" : 21,
 			"state_pin_closed_value" : 0,
-			"approx_time_to_close" : 1,
-			"approx_time_to_open" : 1,
+			"approx_time_to_close" : 0,
+			"approx_time_to_open" : 0,
 			"openhab_name" : "g_door_right"
 			}
 	}
