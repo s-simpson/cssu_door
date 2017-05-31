@@ -23,7 +23,7 @@ see settings in config.json
 pin configuration : ground pin 11
                   : sensor pin (STATE PIN) 21
 
-with system oriented with hdmi input, power light and power input on right side, usb on bottom
+with system oriented with hdmi input, power light and power input on left side, usb on bottom
 red power cable goes to bottom-most pin bottom right column
 black (ground) goes to 5th pin from top left side column. 
 
