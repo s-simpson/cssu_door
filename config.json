@@ -45,7 +45,7 @@
 			{
 			"name" : "CSSU_DOOR",
 			"relay_pin" : 24,
-			"state_pin" : 21,
+			"state_pin" : 23,
 			"state_pin_closed_value" : 0,
 			"approx_time_to_close" : 0,
 			"approx_time_to_open" : 0,

@@ -26,14 +26,18 @@ before the end for rc.local
 
 see settings in config.json
 
-pin configuration : ground pin 11
-                  : sensor pin (STATE PIN) 21
+###########################################################################################################
 
-with system oriented with hdmi input, power light and power input on left side, usb on bottom
-red power cable goes to bottom-most pin bottom right column
-black (ground) goes to 5th pin from top left side column. 
+pin configuration : ground pin 9
+                  : sensor pin (STATE PIN) BCM23  (actual pin#16) python uses the #23
 
+with raspberry pi system oriented with hdmi input, power light and power input on left side, usb on bottom
+red power cable goes to 8th pin from top, right side column.
+black (ground) goes to 5th pin from top, left side column. 
 
+pins are numbered from top left as pin one, top right as pin 2, next row left pin 3, next row right pin 4 ...
+
+###########################################################################################################
 Monitor and control your garage doors from the web via a Raspberry Pi.
 
 ![Screenshot from the controller app][1] &nbsp; ![Screenshot from the controller app][2]
