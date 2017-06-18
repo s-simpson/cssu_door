@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 
+#############################################################
+# test program to read and print a random line from a text file
+# program also indicates if the line is over 140 characters
+# which is the maximum length of a tweet.   
+#############################################################
 
-MaxLen = 140
+readFilename = "door_open_tweets.txt"
+#readFilename = "door_closed_tweets.txt"
+
+MaxLen = 140 #tweets max 140 characters
 
 import os
 import random
@@ -24,12 +32,11 @@ def randomline(filename):
 
 
 while True:
-	
-	filename = "door_open_tweets.txt"	
-	line = randomline(filename)
-	if (len(line) > 140):
+		
+	line = randomline(readFilename)
+	if (len(line) > MaxLen):
 		print line
-		print len(line)
+		print len(line)  #line is over 140 characters oops need to shorten it I guess.  
 	else:
 		print line
 

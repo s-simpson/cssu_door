@@ -7,7 +7,8 @@
 # purpose to test the state of the door leads
 # when the program is first started it prints the state of the door
 # when the state of the door changes, the program prints the new state
-#
+# it sends the information out to twitter account in the form
+# of a randomly selected message. 
 #
 # to run use python 2.7, raspian jessie 2017 04 10 version
 # from command line:  python door_monitor.py
@@ -20,6 +21,7 @@ import sys
 from twython import Twython
 
 #for twython need to "sudo pip install requests requests_oauthlib" to install correctly
+#not sure why, but it should work ok now
 
 import time
 import RPi.GPIO as GPIO
@@ -28,14 +30,21 @@ import urllib2
 door_closed_tweet = "door_closed_tweets.txt"  #text file filled with random door closed tweet messages
 door_open_tweet = "door_open_tweets.txt"      #text file filled with random door open tweet messages
 
+
+###################################################################
 #need info from our twitter account in order for authorization.
+
+#raspberry pi twitterbot FYI
+#www.instructables.com/id/Raspberry-Pi-Twitterbot/
 
 API_KEY = ''
 API_KEY_SECRET = ''
 ACCESS_TOKEN = ''
 ACCESS_TOKEN_SECRET = ''
 
-api = Twython (API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+##################################################################
+
+api = Twython (API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET) #init api
 
 BUBBLE_SWITCH_PIN = 23   # pin for status of door
 OPEN_DOOR = 1    #when pin reads 1 on this switch the door is open
