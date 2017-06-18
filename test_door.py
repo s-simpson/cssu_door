@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 ######################################################################
-# program test_door.py by Stuart Simpson
+# program door_monitor.py by Stuart Simpson
 # May 31 2017
 # 
 # purpose to test the state of the door leads
@@ -10,7 +10,7 @@
 #
 #
 # to run use python 2.7, raspian jessie 2017 04 10 version
-# from command line:  python test_door.py
+# from command line:  python door_monitor.py
 #
 ######################################################################
 
@@ -31,11 +31,12 @@ CLOSED_DOOR = 0  #when pin reads 0 on this switch the door is closed
 #for diagram of raspberry pi model 3 pins
 #############################################################
 
-EVENT = 'door_opens'
-BASE_URL = 'https://maker.ifttt.com/trigger/'
-KEY = 'cyR3vPNF32W4NZB9cd'
+MAX_TIME = 20 # time in seconds that a door must remain open or closed
+              # before we send a tweet, don't want to send false tweets.
 
-EVENT1 = 'door_closes'
+tweet_sent = True # assume that we've tweeted about the door by default
+
+ts = 0 # timestamp
 
 
 door_state = False   	 # current state of door, False because no door sensor read yet.  (Door could be open or closed when pi boots/program starts)
@@ -52,18 +53,39 @@ try:
          if ( GPIO.input(BUBBLE_SWITCH_PIN) == CLOSED_DOOR ):
               if (door_state == False or door_state == 'open'):
 				  door_state = 'closed'
+              
               if (old_door_state != door_state):
-				print "door closed."
-				old_door_state = door_state
-				time.sleep(0.1) #need slight delay to avoid double readings
+				  tweet_sent = False
+				  ts = time.time()
+				  print "door closed."
+				  old_door_state = door_state
+				  time.sleep(0.1) #need slight delay to avoid double readings
+				
+              if (old_door_state == door_state):
+				  #print "they are the same"
+				  if (time.time() - ts > MAX_TIME and tweet_sent == False):
+					  print "sending door closed tweet"
+					  tweet_sent = True 
+				 
     
          elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
-              if (door_state == False or door_state == 'closed'):
-				  door_state = 'open'
-              if (old_door_state != door_state):
-				print "door open."
-				old_door_state = door_state
-				time.sleep(0.1) #need slight delay to avoid double readings
+			 if (door_state == False or door_state == 'closed'):
+				 door_state = 'open'
+			  
+			 if (old_door_state != door_state):
+				 print "door open."
+				 tweet_sent = False
+				 ts=time.time()
+				 old_door_state = door_state
+				 time.sleep(0.1) #need slight delay to avoid double readings
+				 
+			 if (old_door_state == door_state):
+				 #print "they are the same"
+				 if (time.time() - ts > MAX_TIME and tweet_sent == False):
+					 print "sending door open tweet"
+					 tweet_sent = True 
+					
+				
 				
 finally:
     print('Cleaning up GPIO')
