@@ -36,6 +36,7 @@ door_open_tweet = "door_open_tweets.txt"      #text file filled with random door
 
 #raspberry pi twitterbot FYI
 #www.instructables.com/id/Raspberry-Pi-Twitterbot/
+#www.makeuseof.com/tag/how-to-build-a -raspberry-pi-twitter-bot/
 
 API_KEY = ''
 API_KEY_SECRET = ''
@@ -67,7 +68,7 @@ door_state = False   	 #current state of door, False because no door sensor read
 old_door_state = False   # ditto, also there was no old_door state if there was no initial door state yet.
                           # only want an event to happen when the door changes states.  
 
-rand_tweet ="" #random tweet message
+rand_tweet ="" #random tweet message none selected yet, will fill in later.
 
 
 def randomline(filename):
