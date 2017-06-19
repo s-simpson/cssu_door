@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 ######################################################################
-# program door_monitor.py by Stuart Simpson
+# program test_door.py by Stuart Simpson
 # May 31 2017
 # 
 # purpose to test the state of the door leads

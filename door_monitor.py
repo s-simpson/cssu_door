@@ -12,7 +12,11 @@
 #
 # to run use python 2.7, raspian jessie 2017 04 10 version
 # from command line:  python door_monitor.py
-#
+# 
+# to set to launch at startup
+# sudo nano /etc/rc.local
+# add line to /etc/rc.local above the call to exit 0:
+# (cd ~pi/garage-door-controller; python door_monitor.py)
 ######################################################################
 
 import random
@@ -42,6 +46,7 @@ API_KEY = ''
 API_KEY_SECRET = ''
 ACCESS_TOKEN = ''
 ACCESS_TOKEN_SECRET = ''
+
 
 ##################################################################
 
@@ -121,7 +126,7 @@ try:
 					  print "sending door closed tweet"
 					  rand_tweet = randomline (door_closed_tweet)
 					  print rand_tweet
-					  #api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+					  api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
 					  tweet_sent = True 
 				     
          elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
@@ -141,7 +146,7 @@ try:
 					 print "sending door opened tweet"
 					 rand_tweet = randomline (door_open_tweet)
 					 print rand_tweet
-					 #api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+					 api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
 					 tweet_sent = True 
 											
 finally:
