@@ -39,7 +39,9 @@ https://twitter.com/cssu_door
 randomly selects from tweets located in 'door_open_tweets.txt' or 'door_closed_tweets.txt'
 depending on whether it is open or closed.  
 
-The tweets are simple text messages that are of length <=140 characters followed by a carriage return
+The tweets are simple text messages that are of length <=125 characters followed by a carriage return
+
+tweets are max 140 characters, but we have to add a timestamp for uniqueness, otherwise twitter balks
 
 PROGRAM CAN BE SET TO AUTORUN ON THE PI
 
@@ -157,6 +159,7 @@ https://github.com/andrewshilliday
 read_file.py
 
 test program to read a text file and print a random line from that file
+prints a numeric value if the tweets are over the max size limit
 
 ========================================================================================================
 SillyTweeter.py
@@ -204,3 +207,27 @@ to run  (cmd line)  python password_reader.py
 email_test.py and email_test2.py
 
 two test programs for sending emails with the gmail account.
+
+========================================================================================================
+door_open_tweets.txt
+door_closed_tweets.txt
+
+tweets of max 125 characters (125 characters + 15 character timestamp to be added later) is equal to the 140 
+character limit of twitter
+
+need a timestamp for uniqueness of the tweet as you can't resend the same tweet within about a day or so
+(twitter restriction)
+
+can't send a tweet over 140 characters either. (error)
+=========================================================================================================
+pwds.json file
+
+a json file containing all of the passwords and ultra secret twitter keys
+the easiest way to edit this file is to change the values in
+password_maker.py (save the update) and run python password_maker.py
+
+=========================================================================================================
+
+
+
+

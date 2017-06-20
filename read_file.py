@@ -9,7 +9,7 @@
 readFilename = "door_open_tweets.txt"
 #readFilename = "door_closed_tweets.txt"
 
-MaxLen = 140 #tweets max 140 characters
+MaxLen = 124 #tweets max 140 characters - time stamp which is 16 characters
 
 import os
 import random

@@ -44,6 +44,7 @@ from twython import Twython
 #not sure why, but it should work ok now
 
 import time
+from datetime import datetime
 import RPi.GPIO as GPIO
 import urllib2
 
@@ -56,18 +57,28 @@ from email import encoders
 import json
 from collections import OrderedDict
 
-fromaddr = "" #gmail address that we are sending the email from.  (stored in pwds.json)
-toaddr = "cssudoor@gmail.com"  #can have multiple destination addrs, separate with a comma, email recipients
-                               #right now the recipients and the sender are the same address.
+SEND_EMAIL = True 	#flag to enable/disable sending emails
+SEND_TWEET = True   #flag to enable/disable sending tweets
 
-alladdr = toaddr.split(",") 
+fromaddr = "" 		#gmail address that we are sending the email from.  (stored in pwds.json) (password_maker.py)
+toaddr = ""  		#can have multiple destination addrs, separate with a comma, email recipients (see pwds.json) (password_maker.py)
+                    #right now the recipients and the sender are the same address.
 
-door_closed_tweet = "door_closed_tweets.txt"  #text file filled with random door closed tweet messages
-door_open_tweet = "door_open_tweets.txt"      #text file filled with random door open tweet messages
+door_closed_tweet = "/home/pi/garage-door-controller/door_closed_tweets.txt"  #text file filled with random door closed tweet messages
+door_open_tweet = "/home/pi/garage-door-controller/door_open_tweets.txt"      #text file filled with random door open tweet messages
+passwords_file = "/home/pi/garage-door-controller/pwds.json"				  #json file created to store config/password information
 
-data = json.load(open('pwds.json'), object_pairs_hook=OrderedDict)
+try:
+	data = json.load(open(passwords_file), object_pairs_hook=OrderedDict)
+except IOError as e:
+	print "could not read file: ", filename	
+	print "I/O error ({0}): {1}", format(e.errorno, e.strerror)
+	sys.exit() 
+except:  #handle other errors
+	print "Unexpected error: ", sys.exc_info()[0]
+	sys.exit()
+
 #print json.dumps(data, indent=4)
-
 
 ###################################################################
 #need info from our twitter account in order for authorization.
@@ -82,14 +93,20 @@ data = json.load(open('pwds.json'), object_pairs_hook=OrderedDict)
 
 #data stored in 'pwds.json'
 
-API_KEY = data['api_key']						 #these 4 items are twitter security keys
+#these 4 items are twitter security keys
+API_KEY = data['api_key']						 
 API_KEY_SECRET = data['api_key_secret']
 ACCESS_TOKEN = data['access_token']
 ACCESS_TOKEN_SECRET = data['access_token_secret']
 
-gmail_password = data ['gmail_password']		 #the sending gmail address' password
-fromaddr = data['gmail_account']                 #the gmail address that is sending the emails
+#sender password
+gmail_password = data ['gmail_password']
+#sender address
+fromaddr = data['gmail_account']                
+#recipents address(es)
+toaddr = data['gmail_recipients']
 
+alladdr = toaddr.split(",") #more than one email address? separate them for later
 ##################################################################
 
 api = Twython (API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET) #init api
@@ -111,9 +128,9 @@ tweet_sent = True # assume that we've tweeted about the door by default
 
 ts = 0 # timestamp
 
-door_state = False   	 #current state of door, False because no door sensor read yet.  (Door could be open or closed when pi boots/program starts)
+door_state = False   	 #current state of door, False initally because door sensor unread.  (Door could be open or closed when pi boots/program starts)
 old_door_state = False   # ditto, also there was no old_door state if there was no initial door state yet.
-                          # only want an event to happen when the door changes states.  
+                          # We only want an event to happen when the door changes states.  
 
 rand_tweet ="" #random tweet message none selected yet, will fill in later.
 
@@ -124,11 +141,19 @@ def randomline(filename):
 # purpose:  returns a random line from a text file
 # https://stackoverflow.com/questions/14924721/how-to-choose-a-random-line-from-a-text-file
 #	
-# assumes that the file exists and can be read.  no error checking
+# assumes that the file exists and can be read.  
+# added error checking if file missing
 ###########################################################################################
 
-	
-	fh = open(filename, "r")
+	try:
+		fh = open(filename, "r")
+	except IOError as e:
+		print "could not read file: ", filename	
+		print "I/O error ({0}): {1}", format(e.errorno, e.strerror)
+	except:  #handle other errors
+		print "Unexpected error: ", sys.exc_info()[0]
+		sys.exit()
+        
 	lineNum = 0
 	it =""
 	
@@ -144,7 +169,7 @@ def randomline(filename):
 	return nmsg
 
 
-def sendOurMail(fromaddr,toaddr,subject_line,message_body,gmail_password):
+def sendOurMail(fromaddr, toaddr, alladdr, subject_line, message_body, gmail_password):
 	
 #########################################################################################################
 # purpose:  this function sends an email out via a gmail address
@@ -155,7 +180,7 @@ def sendOurMail(fromaddr,toaddr,subject_line,message_body,gmail_password):
 #          for more information.
 #         
 #
-#          calling:  sendOurMail (fromaddr, toaddr, email_subject_line, message_body, gmail_password)
+#          calling:  sendOurMail (fromaddr, toaddr, alladdr, email_subject_line, message_body, gmail_password)
 #########################################################################################################
 
 	msg = MIMEMultipart()
@@ -170,10 +195,11 @@ def sendOurMail(fromaddr,toaddr,subject_line,message_body,gmail_password):
 	server.sendmail(fromaddr, alladdr, text)
 	server.quit()
 
+###############################################################
 # Configure the GPIO pin  INIT FOR READ OF DOOR SENSOR
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUBBLE_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  #with pull up no need for external resisitors
-
 
 #################### main loop ################################
 
@@ -185,7 +211,7 @@ try:
               
               if (old_door_state != door_state):
 				  tweet_sent = False
-				  ts = time.time()
+				  ts = time.time()  #get timestamp of door state change
 				  print "door closed."
 				  old_door_state = door_state
 				  time.sleep(0.1) #need slight delay to avoid double readings
@@ -195,12 +221,17 @@ try:
 				  if (time.time() - ts > MAX_TIME and tweet_sent == False):
 					  print "sending door closed tweet"
 					  rand_tweet = randomline (door_closed_tweet)
+					  rand_tweet = rand_tweet.rstrip('\r\n')
+					  rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")
 					  print rand_tweet
-					  api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+					  if (SEND_TWEET):
+						  api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
 					  tweet_sent = True
 					  
 					  #send email message
-					  sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet, gmail_password)
+					  if (SEND_EMAIL):
+						  print "Sending an email about the door being closed."
+						  sendOurMail(fromaddr,toaddr, alladdr, "CSSU Door is now CLOSED", rand_tweet, gmail_password)
 					   
 				     
          elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
@@ -210,7 +241,7 @@ try:
 			 if (old_door_state != door_state):
 				 print "door open."
 				 tweet_sent = False
-				 ts=time.time()
+				 ts=time.time()  #get timestamp of door state change
 				 old_door_state = door_state
 				 time.sleep(0.1) #need slight delay to avoid double readings
 				 
@@ -219,12 +250,17 @@ try:
 				 if (time.time() - ts > MAX_TIME and tweet_sent == False):
 					 print "sending door opened tweet"
 					 rand_tweet = randomline (door_open_tweet)
+					 rand_tweet = rand_tweet.rstrip('\r\n')
+					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")
 					 print rand_tweet
-					 api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+					 if (SEND_TWEET):
+						 api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
 					 tweet_sent = True 
 					 
 					 #send email message
-					 sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet, gmail_password)
+					 if (SEND_EMAIL):
+						 print "Sending an email about the door being open."
+						 sendOurMail(fromaddr,toaddr, alladdr, "CSSU Door is now OPEN", rand_tweet, gmail_password)
 					 						
 finally:
     print('Cleaning up GPIO')
