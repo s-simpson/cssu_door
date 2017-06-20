@@ -22,7 +22,7 @@
 #
 #  Don't upload API KEY INFORMATION/ACCESS TOKEN INFO TO GITHUB 
 #  IF IT CAN BE READ IN A PUBLIC MANNER as security will be compomised
-#
+#     
 #  Dependencies:  all of the import libraries must be installed
 #  
 #  files needed:  pwds.json must be configured correctly
@@ -32,9 +32,7 @@
 #                    door_closed_tweets.txt
 #				  	 door_open_tweets.txt 		  
 #  
-#  (each line of a tweet file is a single tweet, to be selected at random)
-#   each line has a cr, and is at most 140 characters long.
-#   
+#  
 ######################################################################
 
 import random
@@ -49,14 +47,27 @@ import time
 import RPi.GPIO as GPIO
 import urllib2
 
-door_closed_tweet = "door_closed_tweets.txt"  #text file filled with random door closed tweet messages
-door_open_tweet = "door_open_tweets.txt"      #text file filled with random door open tweet messages
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email import encoders
 
 import json
 from collections import OrderedDict
 
-data = json.load(open('pwds.json'), object_pairs_hook=OrderedDict)  #get the passwords from pwds.json
+fromaddr = "" #gmail address that we are sending the email from.  (stored in pwds.json)
+toaddr = "cssudoor@gmail.com"  #can have multiple destination addrs, separate with a comma, email recipients
+                               #right now the recipients and the sender are the same address.
+
+alladdr = toaddr.split(",") 
+
+door_closed_tweet = "door_closed_tweets.txt"  #text file filled with random door closed tweet messages
+door_open_tweet = "door_open_tweets.txt"      #text file filled with random door open tweet messages
+
+data = json.load(open('pwds.json'), object_pairs_hook=OrderedDict)
 #print json.dumps(data, indent=4)
+
 
 ###################################################################
 #need info from our twitter account in order for authorization.
@@ -69,10 +80,15 @@ data = json.load(open('pwds.json'), object_pairs_hook=OrderedDict)  #get the pas
 #IMPORTANT:  THESE KEYS NEED TO BE KEPT SECRET!!!!  
 #don't upload to github in a readable format
 
+#data stored in 'pwds.json'
+
 API_KEY = data['api_key']						 #these 4 items are twitter security keys
 API_KEY_SECRET = data['api_key_secret']
 ACCESS_TOKEN = data['access_token']
 ACCESS_TOKEN_SECRET = data['access_token_secret']
+
+gmail_password = data ['gmail_password']		 #the sending gmail address' password
+fromaddr = data['gmail_account']                 #the gmail address that is sending the emails
 
 ##################################################################
 
@@ -88,7 +104,7 @@ CLOSED_DOOR = 0  #when pin reads 0 on this switch the door is closed
 #for diagram of raspberry pi model 3 pins
 #############################################################
 
-MAX_TIME = 2 # time in seconds that a door must remain open or closed
+MAX_TIME = 2 # delay time in seconds that a door must remain open or closed
              # before we send a tweet, don't want to send false tweets.
 
 tweet_sent = True # assume that we've tweeted about the door by default
@@ -128,10 +144,38 @@ def randomline(filename):
 	return nmsg
 
 
-# Configure the GPIO pin
+def sendOurMail(fromaddr,toaddr,subject_line,message_body,gmail_password):
+	
+#########################################################################################################
+# purpose:  this function sends an email out via a gmail address
+#          the gmail address must have a lower security setting to function
+#          correctly.
+#          
+#          see https://myhydropi.com/send-email-with-a-raspberry-pi-and-python
+#          for more information.
+#         
+#
+#          calling:  sendOurMail (fromaddr, toaddr, email_subject_line, message_body, gmail_password)
+#########################################################################################################
+
+	msg = MIMEMultipart()
+	msg['From'] = fromaddr
+	msg['To'] = toaddr
+	msg['Subject'] = subject_line
+	msg.attach(MIMEText(message_body,'plain'))
+	server = smtplib.SMTP('smtp.gmail.com',587) #587 works with gmail, might not work with other emails
+	server.starttls()
+	server.login(fromaddr, gmail_password)
+	text = msg.as_string()
+	server.sendmail(fromaddr, alladdr, text)
+	server.quit()
+
+# Configure the GPIO pin  INIT FOR READ OF DOOR SENSOR
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUBBLE_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  #with pull up no need for external resisitors
 
+
+#################### main loop ################################
 
 try:  
     while True:
@@ -153,7 +197,11 @@ try:
 					  rand_tweet = randomline (door_closed_tweet)
 					  print rand_tweet
 					  api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
-					  tweet_sent = True 
+					  tweet_sent = True
+					  
+					  #send email message
+					  sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet, gmail_password)
+					   
 				     
          elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
 			 if (door_state == False or door_state == 'closed'):
@@ -174,7 +222,10 @@ try:
 					 print rand_tweet
 					 api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
 					 tweet_sent = True 
-											
+					 
+					 #send email message
+					 sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet, gmail_password)
+					 						
 finally:
     print('Cleaning up GPIO')
     GPIO.cleanup()

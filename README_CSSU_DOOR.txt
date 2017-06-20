@@ -29,7 +29,9 @@ prints out the status of the door (open or closed) used to test operation of the
 
 run:  (from command line)  python test_door.py
 ========================================================================================================
-door_monitor.py  (PURPOSE TO SEND TWEETS)
+door_monitor.py  (PURPOSE TO SEND TWEETS)  SEE door_emailer.py which also sends tweets.  
+
+only run door_monitor.py or door_emailer.py, not both as you will get duplicate tweets.
 
 prints out the status of the door (open or closed and sends tweets to the twitter account
 https://twitter.com/cssu_door
@@ -162,7 +164,43 @@ SillyTweeter.py
 test program that demonstrates how to send a tweet in python with Twython
 
 ========================================================================================================
+door_emailer.py
+
+makes use of password_maker.py for configuration of the pwds.json passwords file.
+also depends upon the two tweet files:  door_open_tweets.txt, and door_closed_tweets.txt.
+
+no error checking is done if the files are missing or incomplete, expect the program to not work ok.
+
+this program sends tweets just like door monitor.py and also sends emails to the given email addresses
+of the tweets.  Currently the program simply sends emails to the cssudoor@gmail.com website from
+the cssudoor@gmail.com website.  addtional recipients could be added.
+
+If you have door emailer running, there is no need to have door monitor also running, as they both send tweets
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+references website:
+
+https://myhydropi.com/send-email-with-a-raspberry-pi-and-python
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+========================================================================================================
+
+password_maker.py
+
+program that generates the config data file for door_emailer.py and door_monitor.py
+
+It must be ran and filled in correctly for these 2 programs to function
+
+creates the pwds.json data file
+
+to run:  (cmd line)  python password_maker.py
+
+========================================================================================================
+password_reader.py
+
+utility program used to verify that the pwds.json file is working/written ok.
 
 
+to run  (cmd line)  python password_reader.py
+========================================================================================================
+email_test.py and email_test2.py
 
-
+two test programs for sending emails with the gmail account.

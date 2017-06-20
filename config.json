@@ -14,9 +14,9 @@
 		"smtphost" : "smtp.gmail.com",
 		"smtpport" : 587,
 		"smtp_tls" : "True",
-		"username" : "youraccount@gmail.com",
-		"password" : "yourpassword",
-		"to_email" : "5551234567@txt.att.net"
+		"username" : "fromemail@gmail.com",
+		"password" : "enter_password",
+		"to_email" : "toemail@gmail.com"
 		},
 	"pushbullet":
 		{
