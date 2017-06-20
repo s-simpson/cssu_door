@@ -1,6 +1,10 @@
 """Software to monitor and control garage doors via a raspberry pi."""
 
-#software from:  https://github.com/andrewshilliday/garage-door-controller/
+#software pulled and modified from:  https://github.com/andrewshilliday/garage-door-controller/
+
+#This version stored at
+
+#https://github.com/s-simpson/cssu_door/
 
 #installation instructions on there.
 
