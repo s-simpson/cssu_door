@@ -212,11 +212,11 @@ two test programs for sending emails with the gmail account.
 door_open_tweets.txt
 door_closed_tweets.txt
 
-tweets of max 125 characters (125 characters + 15 character timestamp to be added later) is equal to the 140 
-character limit of twitter
+tweets of max 124 characters (124 characters + 16 character timestamp to be added later) is equal to the 140 
+character limit of twitter, if we go over 140 characters, we get a Twython error.
 
 need a timestamp for uniqueness of the tweet as you can't resend the same tweet within about a day or so
-(twitter restriction)
+(twitter restriction against automatic posting or boring twitter messages, and to save on storage space)
 
 can't send a tweet over 140 characters either. (error)
 =========================================================================================================
@@ -224,7 +224,12 @@ pwds.json file
 
 a json file containing all of the passwords and ultra secret twitter keys
 the easiest way to edit this file is to change the values in
-password_maker.py (save the update) and run python password_maker.py
+password_maker.py (save the update) and run python password_maker.py, which will generate a new
+pwds.json file.
+
+The point is to keep the keys and passwords out of the main program.
+alternatively you can edit the json file directly, but the password_maker.py program makes it easy
+to add new keys if the program is expanded.
 
 =========================================================================================================
 

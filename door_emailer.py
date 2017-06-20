@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
 ######################################################################
-# program door_monitor.py by Stuart Simpson
-# May 31 2017
+# program door_emailer.py by Stuart Simpson
+# June 20, 2017
 # 
-# purpose to test the state of the door leads
-# when the program is first started it prints the state of the door
-# when the state of the door changes, the program prints the new state
-# it sends the information out to twitter account in the form
-# of a randomly selected message. 
-#
+# purpose:  This program emails and tweets incessantly about
+#           The status of the door in the cssu office.
+#           is the door open or is it closed?  
+#           The tension is palpable and unbearable. 
+#   
 # to run use python 2.7, raspian jessie 2017 04 10 version
 # from command line:  python door_monitor.py
 # 
@@ -222,15 +221,20 @@ try:
 					  print "sending door closed tweet"
 					  rand_tweet = randomline (door_closed_tweet)
 					  rand_tweet = rand_tweet.rstrip('\r\n')
-					  rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")
+					  rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")  #timestamp to avoid duplicate tweet error
 					  print rand_tweet
+					  
 					  if (SEND_TWEET):
-						  api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+						 try: 
+							 api.update_status(status=rand_tweet) #send tweet
+						 except TwythonError as e:
+							 print e.error_code 
+					 
 					  tweet_sent = True
 					  
 					  #send email message
 					  if (SEND_EMAIL):
-						  print "Sending an email about the door being closed."
+						  print "Sending an email about the door being [CLOSED]."
 						  sendOurMail(fromaddr,toaddr, alladdr, "CSSU Door is now CLOSED", rand_tweet, gmail_password)
 					   
 				     
@@ -251,15 +255,19 @@ try:
 					 print "sending door opened tweet"
 					 rand_tweet = randomline (door_open_tweet)
 					 rand_tweet = rand_tweet.rstrip('\r\n')
-					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")
+					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f") #timestamp to avoid duplicate tweet error.
 					 print rand_tweet
+					 
 					 if (SEND_TWEET):
-						 api.update_status(status=rand_tweet) #to actually send tweet uncomment this line
+						 try: 
+							 api.update_status(status=rand_tweet) #send tweet
+						 except TwythonError as e:
+							 print e.error_code
 					 tweet_sent = True 
 					 
 					 #send email message
 					 if (SEND_EMAIL):
-						 print "Sending an email about the door being open."
+						 print "Sending an email about the door being [OPEN]."
 						 sendOurMail(fromaddr,toaddr, alladdr, "CSSU Door is now OPEN", rand_tweet, gmail_password)
 					 						
 finally:

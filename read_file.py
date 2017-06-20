@@ -6,10 +6,10 @@
 # which is the maximum length of a tweet.   
 #############################################################
 
-readFilename = "door_open_tweets.txt"
-#readFilename = "door_closed_tweets.txt"
+#readFilename = "door_open_tweets.txt"
+readFilename = "door_closed_tweets.txt"
 
-MaxLen = 124 #tweets max 140 characters - time stamp which is 16 characters
+MaxLen = 124 #tweets max 140 characters - time stamp which is 16 characters (including space between)
 
 import os
 import random
@@ -34,9 +34,9 @@ def randomline(filename):
 while True:
 		
 	line = randomline(readFilename)
-	if (len(line) > MaxLen):
-		print line
-		print len(line)  #line is over 140 characters oops need to shorten it I guess.  
+	if (len(line) > MaxLen):		
+		print len(line)  #line is over 140 characters oops need to shorten it I guess.
+		print line  
 	else:
 		print line
 
