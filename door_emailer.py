@@ -29,7 +29,7 @@
 #	              
 #                 also need tweet data files:
 #                    door_closed_tweets.txt
-#				  	 door_open_tweets.txt 		  
+#		     door_open_tweets.txt 		  
 #  
 #  
 ######################################################################
@@ -81,7 +81,6 @@ except:  #handle other errors
 
 ###################################################################
 #need info from our twitter account in order for authorization.
-
 #raspberry pi twitterbot FYI
 #www.instructables.com/id/Raspberry-Pi-Twitterbot/
 #www.makeuseof.com/tag/how-to-build-a -raspberry-pi-twitter-bot/
@@ -218,7 +217,7 @@ try:
               if (old_door_state == door_state):
 				  #print "they are the same"
 				  if (time.time() - ts > MAX_TIME and tweet_sent == False):
-					  print "sending door closed tweet"
+					  print "Sending door [CLOSED] tweet."
 					  rand_tweet = randomline (door_closed_tweet)
 					  rand_tweet = rand_tweet.rstrip('\r\n')
 					  rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")  #timestamp to avoid duplicate tweet error
@@ -252,7 +251,7 @@ try:
 			 if (old_door_state == door_state):
 				 #print "they are the same"
 				 if (time.time() - ts > MAX_TIME and tweet_sent == False):
-					 print "sending door opened tweet"
+					 print "Sending door [OPENED] tweet."
 					 rand_tweet = randomline (door_open_tweet)
 					 rand_tweet = rand_tweet.rstrip('\r\n')
 					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f") #timestamp to avoid duplicate tweet error.
