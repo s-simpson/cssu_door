@@ -25,34 +25,14 @@ Files:
 ========================================================================================================
 test_door.py
 
-prints out the status of the door (open or closed) used to test operation of the door
+prints out the status of the door (open or closed) used to test operation of the door sensor
 
 run:  (from command line)  python test_door.py
 ========================================================================================================
-door_monitor.py  (PURPOSE TO SEND TWEETS)  SEE door_emailer.py which also sends tweets.  
+door_monitor.py  (PURPOSE TO SEND TWEETS)  
 
-only run door_monitor.py or door_emailer.py, not both as you will get duplicate tweets.
-
-prints out the status of the door (open or closed and sends tweets to the twitter account
-https://twitter.com/cssu_door
-
-randomly selects from tweets located in 'door_open_tweets.txt' or 'door_closed_tweets.txt'
-depending on whether it is open or closed.  
-
-The tweets are simple text messages that are of length <=125 characters followed by a carriage return
-
-tweets are max 140 characters, but we have to add a timestamp for uniqueness, otherwise twitter balks
-
-PROGRAM CAN BE SET TO AUTORUN ON THE PI
-
-to run (from command line/terminal) python door_monitor.py
-set to autorun on bootup in /etc/rc.local
-
-(cd ~pi/garage-door-controller; python door_monitor.py) &
-
-just before exit 0
-
-sudo nano /etc/rc.local to edit this file (file protected permissions.)
+See tweety_pi_emailer.py for the final version of this program that prints out the tweets and sends the
+emails securely, door_monitor.py sends the emails less securely.  
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 reference websites:
@@ -167,12 +147,22 @@ SillyTweeter.py
 test program that demonstrates how to send a tweet in python with Twython
 
 ========================================================================================================
-door_emailer.py
+door_emailer.py (see tweety_pi_emailer.py for the final more secure version)
+
+OPERATION
+
+prints out the status of the door (open or closed and sends tweets to the twitter account
+https://twitter.com/cssu_door
+
+randomly selects from tweets located in 'door_open_tweets.txt' or 'door_closed_tweets.txt'
+depending on whether it is open or closed.  
+
+The tweets are simple text messages that are of length <=124 characters followed by a carriage return
+
+tweets are max 140 characters, but we have to add a timestamp for uniqueness, otherwise twitter balks
 
 makes use of password_maker.py for configuration of the pwds.json passwords file.
 also depends upon the two tweet files:  door_open_tweets.txt, and door_closed_tweets.txt.
-
-no error checking is done if the files are missing or incomplete, expect the program to not work ok.
 
 this program sends tweets just like door monitor.py and also sends emails to the given email addresses
 of the tweets.  Currently the program simply sends emails to the cssudoor@gmail.com website from
@@ -186,6 +176,7 @@ https://myhydropi.com/send-email-with-a-raspberry-pi-and-python
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ========================================================================================================
 
+password_maker_blank.py
 password_maker.py
 
 program that generates the config data file for door_emailer.py and door_monitor.py
@@ -196,6 +187,11 @@ creates the pwds.json data file
 
 to run:  (cmd line)  python password_maker.py
 
+**** note if you run password_maker_blank it will overwrite the current data for the pwds.json
+     file.
+
+password_maker.py has the information filled in but isn't in the github repository for security reasons
+   
 ========================================================================================================
 password_reader.py
 
@@ -222,7 +218,7 @@ can't send a tweet over 140 characters either. (error)
 =========================================================================================================
 pwds.json file
 
-a json file containing all of the passwords and ultra secret twitter keys
+a json file containing all of the passwords and the "ultra-secret" twitter keys
 the easiest way to edit this file is to change the values in
 password_maker.py (save the update) and run python password_maker.py, which will generate a new
 pwds.json file.
@@ -233,6 +229,41 @@ to add new keys if the program is expanded.
 
 =========================================================================================================
 
+on_reboot.sh
 
+startup script that runs the controller.py script and tweety_pi_emailer.py upon system boot
+see the file itself for more information on its setup.
+
+===================================================================================================
+
+***** tweety_pi_emailer.py *******
+
+This is the final version of the program that sends emails and tweets about the status of the CSSU 
+door.  Uses full gmail security.
+
+OPERATION
+
+prints out the status of the door (open or closed and sends tweets to the twitter account
+https://twitter.com/cssu_door
+
+randomly selects from tweets located in 'door_open_tweets.txt' or 'door_closed_tweets.txt'
+depending on whether it is open or closed.  
+
+The tweets are simple text messages that are of length <=124 characters followed by a carriage return
+
+tweets are max 140 characters, but we have to add a timestamp for uniqueness, otherwise twitter balks
+
+PROGRAM IS SET TO AUTORUN ON THE PI
+
+see on_reboot.sh for more information
+
+===================================================================================================
+
+client_secret_557759970213-0bo4unsl624nq8i44bm0hu91nhs3f5kg.apps.googleusercontent.com.json 
+gmail.storage
+
+used for gmail security data and passwords not in github for security reasons.
+
+===================================================================================================
 
 

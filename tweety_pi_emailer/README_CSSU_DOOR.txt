@@ -233,6 +233,10 @@ to add new keys if the program is expanded.
 
 =========================================================================================================
 
+tweety_pi_emailer_photos.  
 
+shows the pins used on the pi
+and screenshots of twitter and gmail
+=========================================================================================================
 
 

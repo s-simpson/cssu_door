@@ -14,11 +14,11 @@
 # to run use python 2.7, raspian jessie 2017 04 10 version
 # from command line:  python door_monitor.py
 # 
-# to set to launch at startup
-# sudo nano /etc/rc.local
-# add line to /etc/rc.local above the call to exit 0:
-# (cd ~pi/garage-door-controller; python door_monitor.py) &
-#
+# set to launch at startup
+#   
+#  see on_reboot.sh in the garage-door-controller directory
+#  for more informaton.
+# 
 #  ********** IMPORTANT NOTE *********************************
 #
 #  Don't upload API KEY INFORMATION/ACCESS TOKEN INFO TO GITHUB 
