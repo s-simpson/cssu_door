@@ -113,8 +113,6 @@ API_KEY_SECRET = data['api_key_secret']
 ACCESS_TOKEN = data['access_token']
 ACCESS_TOKEN_SECRET = data['access_token_secret']
 
-#sender password
-gmail_password = data ['gmail_password']
 #sender address
 fromaddr = data['gmail_account']                
 #recipents address(es)
