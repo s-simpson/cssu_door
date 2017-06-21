@@ -1,0 +1,2 @@
+this is the body of the email used by email_test2.py
+Hello there wide world!
