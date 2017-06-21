@@ -1,0 +1,13 @@
+raspberry_pi3_pinouts.png
+wiring raspberry pi pictures
+
+
+using pin BCM23 (pin16) for switch
+pin 9 for ground connection
+
+==========================================
+
+reference website:
+
+see https://pinout.xyz/pinout/pin13_gpio27
+

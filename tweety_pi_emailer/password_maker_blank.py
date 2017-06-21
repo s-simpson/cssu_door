@@ -58,7 +58,6 @@ passwords = {
 	'api_key_secret' : '',
 	'access_token'   : '',
 	'access_token_secret' : '',
-	'gmail_password' : '',
 	'gmail_account' : '',
 	'gmail_recipients' : ''
 }

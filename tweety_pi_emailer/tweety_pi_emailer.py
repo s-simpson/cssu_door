@@ -81,7 +81,7 @@ toaddr = ""  		#can have multiple destination addrs, separate with a comma, emai
 
 door_closed_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_closed_tweets.txt"  #text file filled with random door closed tweet messages
 door_open_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_open_tweets.txt"      #text file filled with random door open tweet messages
-passwords_file = "/home/pi/garage-door-controller/tweety_pi_emailer/pwds.json"				    #json file created to store config/password information
+passwords_file = "/home/pi/garage-door-controller/tweety_pi_emailer/pwds.json"			#json file created to store config/password information
 
 try:
 	data = json.load(open(passwords_file), object_pairs_hook=OrderedDict)
