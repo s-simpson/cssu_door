@@ -36,6 +36,15 @@
 #  
 ######################################################################
 
+SEND_EMAIL = True 	       # flag to enable/disable sending emails
+SEND_TWEET = True         # flag to enable/disable sending tweets
+
+SEND_PUT_MESSAGE = False  # flag to enable/disable sending door status put message to a URL for maybe a webpage (untestested with a webpage)  
+						   # message is {'cssu_door' : 'open'}  or {'cssu_door' : 'closed'}.
+                           # need to add valid put destination url (put_message_url) in the passwords file (pswds.json) 
+                           # fill in data with password_maker.py and run "python password_maker.py" to update pswds.json file. 
+import requests
+
 import random
 import os
 import sys
@@ -71,17 +80,12 @@ from oauth2client.tools import run_flow
 import argparse
 from oauth2client import tools
 
-
-SEND_EMAIL = True 	#flag to enable/disable sending emails
-SEND_TWEET = True  #flag to enable/disable sending tweets
-
-fromaddr = "" 		#gmail address that we are sending the email from.  (stored in pwds.json) (password_maker.py)
-toaddr = ""  		#can have multiple destination addrs, separate with a comma, email recipients (see pwds.json) (password_maker.py)
-                    #right now the recipients and the sender are the same address.
+fromaddr = "" 		#gmail address that we are sending the email from.  (stored in pwds.json) (see password_maker.py)
+toaddr = ""  		#gamil address that we are sending the email to.  (right now we have set as the same adddress, see password_maker.py)
 
 door_closed_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_closed_tweets.txt"  #text file filled with random door closed tweet messages
 door_open_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_open_tweets.txt"      #text file filled with random door open tweet messages
-passwords_file = "/home/pi/garage-door-controller/tweety_pi_emailer/pwds.json"			#json file created to store config/password information
+passwords_file = "/home/pi/garage-door-controller/tweety_pi_emailer/pwds.json"			        #json file created to store config/password information
 
 try:
 	data = json.load(open(passwords_file), object_pairs_hook=OrderedDict)
@@ -102,22 +106,38 @@ except:  #handle other errors
 #www.makeuseof.com/tag/how-to-build-a -raspberry-pi-twitter-bot/
 ####################################################################
 
+#all keys are stored in pwds.json file, edit by changing and running 
+#password_maker.py (python password_maker.py) in this directory
+
 #IMPORTANT:  THESE KEYS NEED TO BE KEPT SECRET!!!!  
 #don't upload to github in a readable format
 
 #data stored in 'pwds.json'
+try:
+	#these 4 items are twitter security keys
+	API_KEY = data['api_key']						 
+	API_KEY_SECRET = data['api_key_secret']
+	ACCESS_TOKEN = data['access_token']
+	ACCESS_TOKEN_SECRET = data['access_token_secret']
+	
+	#sender address
+	fromaddr = data['gmail_account']                
+	
+	#recipents address(es)
+	toaddr = data['gmail_recipients']
+	
+	#client secret file for gmail
+	client_secret_file = data['gmail_client_secret_file']
+	
+	#url for webhook
+	put_message_url = data['put_message_url']
 
-#these 4 items are twitter security keys
-API_KEY = data['api_key']						 
-API_KEY_SECRET = data['api_key_secret']
-ACCESS_TOKEN = data['access_token']
-ACCESS_TOKEN_SECRET = data['access_token_secret']
-
-#sender address
-fromaddr = data['gmail_account']                
-#recipents address(es)
-toaddr = data['gmail_recipients']
-
+except KeyError as e:
+	print "One of the keys in the pwds.json file is missing."
+	print "make sure all required keys are added to password_maker.py." 
+	print "run 'python password_maker.py' from the command line"
+	
+	
 #alladdr = toaddr.split(",") #more than one email address? separate them for later
 ##################################################################
 
@@ -181,7 +201,7 @@ def randomline(filename):
 	return nmsg
 
 
-def sendOurMail(fromaddr, toaddr,subject_line, message_body):
+def sendOurMail(fromaddr, toaddr,subject_line, message_body, client_secret_file):
 	
 #########################################################################################################
 # purpose:  this function sends an email out via a gmail address without compromising security settings.
@@ -199,11 +219,11 @@ def sendOurMail(fromaddr, toaddr,subject_line, message_body):
 #  tested initially in the email_secure_test.py program in the Test_programs folder.
 #         
 #
-#          calling:  sendOurMail (fromaddr, toaddr, email_subject_line, message_body)
+#          calling:  sendOurMail (fromaddr, toaddr, email_subject_line, message_body, client_secret_file)
 #########################################################################################################
 
-	# Path to the client_secret.json file downloaded from the Developer Console
-	CLIENT_SECRET_FILE = 'client_secret_557759970213-0bo4unsl624nq8i44bm0hu91nhs3f5kg.apps.googleusercontent.com.json'
+	# Path to the client_secret.json file downloaded from the Developer Console (ignore path put in same local dir as this file)
+	CLIENT_SECRET_FILE = client_secret_file
 	
 	# Check https://developers.google.com/gmail/api/auth/scopes for all available scopes
 	OAUTH_SCOPE = 'https://www.googleapis.com/auth/gmail.compose'
@@ -284,7 +304,16 @@ try:
 					  #send email message
 					  if (SEND_EMAIL):
 						  print "Sending an email about the door being [CLOSED]."
-						  sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet)
+						  sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet, client_secret_file)
+					  
+					  #send put request for webhook
+					  if (SEND_PUT_MESSAGE):
+						  print "Sending http put message {'cssu_door' : 'closed'} to URL:  " + put_message_url 
+						  try:
+							  r = requests.put(put_message_url, data = {'cssu_door' : 'closed'}) #not sure to use put or post here (r=request.post ...)
+						  except Exception as error:
+							  print("put request for door close failed")
+							  print('An error occurred: %s' % error)
 					   
 				     
          elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
@@ -307,6 +336,7 @@ try:
 					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f") #timestamp to avoid duplicate tweet error.
 					 print rand_tweet
 					 
+					 #send tweet
 					 if (SEND_TWEET):
 						 try: 
 							 api.update_status(status=rand_tweet) #send tweet
@@ -317,8 +347,17 @@ try:
 					 #send email message
 					 if (SEND_EMAIL):
 						 print "Sending an email about the door being [OPEN]."
-						 sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet)
-					 						
+						 sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet, client_secret_file)
+					
+					 #send put request for webhook
+					 if (SEND_PUT_MESSAGE):
+						 print "Sending http put message {'cssu_door' : 'open'} to URL:  " + put_message_url 
+						 try:
+							 r = requests.put(put_message_url, data = {'cssu_door' : 'open'}) #not sure to use put or post here (r=request.post ...)
+					 	 except Exception as error:
+							 print ("put request for door open message has failed.")
+							 print('An error occurred: %s' % error)
+							 					
 finally:
     print('Cleaning up GPIO')
     GPIO.cleanup()

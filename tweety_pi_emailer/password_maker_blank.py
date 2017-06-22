@@ -59,7 +59,8 @@ passwords = {
 	'access_token'   : '',
 	'access_token_secret' : '',
 	'gmail_account' : '',
-	'gmail_recipients' : ''
+	'gmail_recipients' : '',
+	'put_message_url' : ''
 }
 
 
