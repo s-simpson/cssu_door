@@ -38,9 +38,17 @@ Purpose:   displays a local webpage that shows the status of the CSSU DOOR.
            simply hover over the wireless icon at the top right corner of the desktop. 
 
 	   The ip address may (probably will) change depending upon the network/reboots etc, unless you can have a static ip
-           or have some sort of registered web address/domain it will be hard to see.  Not sure how much webtraffic the pi can
-           handle anyhow. 
- 
+           or have some sort of registered web address/domain it will be hard to see for the outside world.
+	   
+           Also:  http://127.0.0.1:8081/upd? (or http://192,168.0.19:8081/?upd) (whatever the ip of the pi) returns the status of the door 
+           
+           (when door is open)
+           {"timestamp": 1498183221, "update": [["right", "open", 1498183214.895251]]}
+	               
+           (when door is closed)
+	   {"timestamp": 1498183465, "update": [["right", "closed", 1498183452.894614]]}
+
+
 
 2)  tweety_pi_emailer.py
 
@@ -50,6 +58,7 @@ Purpose:  sends random twitter messages when the door/opens or closes to https:/
           and can also send the twitter messages to a gmail account if so desired.
 
           The program can also send simple put (or be modified to send a post message instead if thats better) webmessageto a url
+          not sure if we need to implement other options like post, get
 
           
 =======================================================================================================
