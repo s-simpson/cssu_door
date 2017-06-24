@@ -87,6 +87,8 @@ door_closed_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_clos
 door_open_tweet = "/home/pi/garage-door-controller/tweety_pi_emailer/door_open_tweets.txt"      #text file filled with random door open tweet messages
 passwords_file = "/home/pi/garage-door-controller/tweety_pi_emailer/pwds.json"			        #json file created to store config/password information
 
+#get the data from the passwords file.
+
 try:
 	data = json.load(open(passwords_file), object_pairs_hook=OrderedDict)
 except IOError as e:
@@ -262,6 +264,136 @@ def sendOurMail(fromaddr, toaddr,subject_line, message_body, client_secret_file)
 	  print(message)
 	except Exception as error:
 	  print('An error occurred: %s' % error)
+	  
+######################################################################
+	  
+def start_state():
+	"""
+	purpose:  This is the initial (unknown) state of the program.
+	          It is not known whether the door is open or closed, so
+	          we stay here and read for input.
+	          
+	          when we know whether the door is open or not we go to
+	          the appropriate state function.
+	"""	
+	print "Starting Tweety_pi_emailer.py"
+	while True:
+		
+		if( GPIO.input (BUBBLE_SWITCH_PIN) == CLOSED_DOOR):
+			closed_door_state()
+		
+		time.sleep(0.1) #need slight delay to avoid double readings	
+		
+		if( GPIO.input (BUBBLE_SWITCH_PIN) == OPEN_DOOR):
+			open_door_state()
+		
+		time.sleep(0.1) #need slight delay to avoid double readings
+		
+#######################################################################		  
+
+def closed_door_state():
+	
+	"""
+	purpose: when the door is in the closed state we send the closed
+	door tweets, emails and put requests depending on whether
+	SEND_TWEET, SEND_EMAIL, and SEND_PUT_MESSAGE are True or not.
+	The program then waits for the state of the door to change to open
+	
+	If the door is now open we call (switch) to the open_door_state.
+	
+	"""
+	
+	ts = time.time()  #get timestamp of door state change
+	print "DOOR IS CLOSED."
+	time.sleep(0.1) #need slight delay to avoid double readings
+	
+	print "Sending door [CLOSED] tweet."
+	rand_tweet = randomline (door_closed_tweet)
+	rand_tweet = rand_tweet.rstrip('\r\n')
+	rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")  #timestamp to avoid duplicate tweet error
+	print rand_tweet
+	
+	if (SEND_TWEET):
+		try:
+			api.update_status(status=rand_tweet) #send tweet
+		except TwythonError as e:
+			print e.error_code
+		
+	#send email message
+	if (SEND_EMAIL):
+		print "Sending an email about the door being [CLOSED]."
+		sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet, client_secret_file)
+	
+	#send put request for webhook
+	if (SEND_PUT_MESSAGE):
+		print "Sending http put message {'cssu_door' : 'closed'} to URL:  " + put_message_url
+		try:
+			r = requests.put(put_message_url, data = {'cssu_door' : 'closed'}) #not sure to use put or post here (r=request.post ...)
+		except Exception as error:
+			print("put request for door close failed")
+			print('An error occurred: %s' % error)
+	
+	reading = GPIO.input (BUBBLE_SWITCH_PIN)   #wait until the state changes
+	
+	while ( reading == CLOSED_DOOR):
+		time.sleep(0.1) #need slight delay to avoid double readings 
+		reading = GPIO.input (BUBBLE_SWITCH_PIN)
+	
+	#reading = OPEN_DOOR so change states
+	open_door_state()
+		
+#####################################################################################################################################
+
+def open_door_state():
+	
+	"""
+	purpose: when the door is in the open state we send the open
+	door tweets, emails and put requests depending on whether
+	SEND_TWEET, SEND_EMAIL, and SEND_PUT_MESSAGE are True or not.
+	The program then waits for the state of the door to change to closed
+	
+	If the door is now closed we call (switch) to the closed_door_state.
+	
+	"""
+	
+	ts = time.time()  #get timestamp of door state change
+	print "DOOR IS OPEN"
+	time.sleep(0.1) #need slight delay to avoid double readings
+	
+	print "Sending door [OPEN] tweet."
+	rand_tweet = randomline (door_open_tweet)
+	rand_tweet = rand_tweet.rstrip('\r\n')
+	rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")  #timestamp to avoid duplicate tweet error
+	print rand_tweet
+	
+	if (SEND_TWEET):
+		try:
+			api.update_status(status=rand_tweet) #send tweet
+		except TwythonError as e:
+			print e.error_code
+		
+	#send email message
+	if (SEND_EMAIL):
+		print "Sending an email about the door being [OPEN]."
+		sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet, client_secret_file)
+	
+	#send put request for webhook
+	if (SEND_PUT_MESSAGE):
+		print "Sending http put message {'cssu_door' : 'open'} to URL:  " + put_message_url
+		try:
+			r = requests.put(put_message_url, data = {'cssu_door' : 'open'}) #not sure to use put or post here (r=request.post ...)
+		except Exception as error:
+			print("put request for door open failed")
+			print('An error occurred: %s' % error)
+	
+	reading = GPIO.input (BUBBLE_SWITCH_PIN)   #wait until the state changes
+	
+	while ( reading == OPEN_DOOR):
+		time.sleep(0.1) #need slight delay to avoid double readings 
+		reading = GPIO.input (BUBBLE_SWITCH_PIN)
+	
+	#reading = CLOSED_DOOR change states
+	closed_door_state()	
 
 ###############################################################
 # Configure the GPIO pin  INIT FOR READ OF DOOR SENSOR
@@ -271,93 +403,12 @@ GPIO.setup(BUBBLE_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  #with pull up 
 
 #################### main loop ################################
 
-try:  
-    while True:
-         if ( GPIO.input(BUBBLE_SWITCH_PIN) == CLOSED_DOOR ):
-              if (door_state == False or door_state == 'open'):
-				  door_state = 'closed'
-              
-              if (old_door_state != door_state):
-				  tweet_sent = False
-				  ts = time.time()  #get timestamp of door state change
-				  print "door closed."
-				  old_door_state = door_state
-				  time.sleep(0.1) #need slight delay to avoid double readings
-				
-              if (old_door_state == door_state):
-				  #print "they are the same"
-				  if (time.time() - ts > MAX_TIME and tweet_sent == False):
-					  print "Sending door [CLOSED] tweet."
-					  rand_tweet = randomline (door_closed_tweet)
-					  rand_tweet = rand_tweet.rstrip('\r\n')
-					  rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f")  #timestamp to avoid duplicate tweet error
-					  print rand_tweet
-					  
-					  if (SEND_TWEET):
-						 try: 
-							 api.update_status(status=rand_tweet) #send tweet
-						 except TwythonError as e:
-							 print e.error_code 
-					 
-					  tweet_sent = True
-					  
-					  #send email message
-					  if (SEND_EMAIL):
-						  print "Sending an email about the door being [CLOSED]."
-						  sendOurMail(fromaddr,toaddr, "CSSU Door is now CLOSED", rand_tweet, client_secret_file)
-					  
-					  #send put request for webhook
-					  if (SEND_PUT_MESSAGE):
-						  print "Sending http put message {'cssu_door' : 'closed'} to URL:  " + put_message_url 
-						  try:
-							  r = requests.put(put_message_url, data = {'cssu_door' : 'closed'}) #not sure to use put or post here (r=request.post ...)
-						  except Exception as error:
-							  print("put request for door close failed")
-							  print('An error occurred: %s' % error)
-					   
-				     
-         elif ( GPIO.input(BUBBLE_SWITCH_PIN) == OPEN_DOOR ):
-			 if (door_state == False or door_state == 'closed'):
-				 door_state = 'open'
-			  
-			 if (old_door_state != door_state):
-				 print "door open."
-				 tweet_sent = False
-				 ts=time.time()  #get timestamp of door state change
-				 old_door_state = door_state
-				 time.sleep(0.1) #need slight delay to avoid double readings
-				 
-			 if (old_door_state == door_state):
-				 #print "they are the same"
-				 if (time.time() - ts > MAX_TIME and tweet_sent == False):
-					 print "Sending door [OPENED] tweet."
-					 rand_tweet = randomline (door_open_tweet)
-					 rand_tweet = rand_tweet.rstrip('\r\n')
-					 rand_tweet = rand_tweet + " " + datetime.now().strftime("%H:%M:%S.%f") #timestamp to avoid duplicate tweet error.
-					 print rand_tweet
-					 
-					 #send tweet
-					 if (SEND_TWEET):
-						 try: 
-							 api.update_status(status=rand_tweet) #send tweet
-						 except TwythonError as e:
-							 print e.error_code
-					 tweet_sent = True 
-					 
-					 #send email message
-					 if (SEND_EMAIL):
-						 print "Sending an email about the door being [OPEN]."
-						 sendOurMail(fromaddr,toaddr, "CSSU Door is now OPEN", rand_tweet, client_secret_file)
-					
-					 #send put request for webhook
-					 if (SEND_PUT_MESSAGE):
-						 print "Sending http put message {'cssu_door' : 'open'} to URL:  " + put_message_url 
-						 try:
-							 r = requests.put(put_message_url, data = {'cssu_door' : 'open'}) #not sure to use put or post here (r=request.post ...)
-					 	 except Exception as error:
-							 print ("put request for door open message has failed.")
-							 print('An error occurred: %s' % error)
+try:
+	while True:
+		start_state()
 							 					
 finally:
     print('Cleaning up GPIO')
     GPIO.cleanup()
+
+
